@@ -10,18 +10,28 @@
       referrerpolicy="no-referrer"
     />
     <style>
-      iframe { 
+      iframe-proxy { 
         width: 320px;
         height: 100px;
         background-color: lightgray;
         border: 2px solid black;
         box-sizing: border-box;
+        padding: 7px;
       }
-      #iframe-container {
+      #custom-element-container {
         height: 110px;
         background-color: grey;
         padding: 5px;
         overflow-y: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      #custom-element-container:empty {
+        justify-content: center;
+      }
+      #custom-element-container:empty:before {
+        content: attr(data-placeholder);
       }
     </style>
   </head>
@@ -38,10 +48,11 @@
     </ol>
     <p>
       <button id="add-custom-element">Add custom element</button><br />
-      <button id="remove-custom-element">Remove custom element</button><br />
+      <button id="remove-all-custom-elements">Remove all custom elements</button><br />
       <button id="attempt-to-access-iframe">Attempt to access the wrapped iframe</button>
     </p>
     </div>
+    <div id="custom-element-container" data-placeholder="Custom Elements will be created here."></div>
     <hr />
     <div>
       We are running the following JavaScript code on this page (see
