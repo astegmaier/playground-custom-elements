@@ -63,7 +63,6 @@ document.getElementById('attempt-to-access-iframe').onclick = () => {
 
 function getIframe() {
   const iframe = document.createElement("iframe");
-  iframe.asdfasdf = "iframe";
   iframe.style.height = "60px";
   iframe.style.backgroundColor = "darkgrey";
   iframe.srcdoc = `
