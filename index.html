@@ -43,7 +43,7 @@
       This project shows how it would be possible to use <a href="https://web.dev/articles/custom-elements-v1">custom elements</a> to wrap an iframe to achieve these goals:
     </p>
     <ol>
-      <li>Get a reliable, performant signal about when the host has removed iframe wrapper from the DOM (or any of it's parents).</li>
+      <li>Get a reliable, performant signal about when the host has removed iframe wrapper from the DOM (even indirectly through one of its parents).</li>
       <li>Prevent code on the host page from accessing the iframe directly - and prevent memory leaks that could occur if retainers still connected the iframe to the GC root after it is removed.</li>
     </ol>
     <p>
