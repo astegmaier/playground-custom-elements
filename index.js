@@ -5,6 +5,7 @@
 class IframeProxy extends HTMLElement {
   #shadowRoot;
   #iframe;
+  #onDisconnectedListeners = [];
 
   constructor(id) {
     super();
@@ -12,6 +13,12 @@ class IframeProxy extends HTMLElement {
     this.id = id;
   }
 
+  /**
+   * This lifecycle method is called each time the element is added to the document. 
+   * The specification recommends that, as far as possible, developers should implement 
+   * custom element setup in this callback rather than the constructor. 
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#custom_element_lifecycle_callbacks
+   */
   connectedCallback() {
     console.log(`${this.id} - connectedCallback`);
     this.#iframe = getIframe();
@@ -20,18 +27,28 @@ class IframeProxy extends HTMLElement {
     this.#shadowRoot.appendChild(this.#iframe);
   }
 
+  /**
+   * This lifecycle method is  called each time the element is removed from the document. 
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#custom_element_lifecycle_callbacks
+   */
   disconnectedCallback() {
     console.log(`${this.id} - disconnectedCallback`);
     this.#shadowRoot.removeChild(this.#iframe);
     this.#shadowRoot = undefined;
     this.#iframe = undefined;
-    // TODO: invoke registered "onDisconnected" callbacks.
+    this.#onDisconnectedListeners.forEach(callback => callback());
+    this.#onDisconnectedListeners = [];
   }
 
-  // TODO: add a way for hosts of this component to register "onDisconnected" 
-  //       callbacks that fire when IframeProxy is removed from the DOM.
-  // TODO: provide access to the iframe.contentWindow, but only through
-  //       a membrane that gets revoked when IframeProxy is removed from the DOM.
+  addOnDisconnectedListener(listener) {
+    this.#onDisconnectedListeners.push(listener);
+  }
+
+  get contentWindow() {
+    // TODO: when membranes are enabled, we would wrap contentWindow in one (and revoke it in disconnectedCallback).
+    return this.#iframe.contentWindow;
+  }
+
 }
 
 window.customElements.define('iframe-proxy', IframeProxy);
@@ -45,7 +62,10 @@ let elementCount = 0
 
 document.getElementById('add-custom-element').onclick = () => {
   const container = document.getElementById('custom-element-container');
-  container.appendChild(new IframeProxy(++elementCount));
+  const iframeProxy = new IframeProxy(++elementCount);
+  // We can register events that will reliably fire when the iframe is removed from the DOM.
+  iframeProxy.addOnDisconnectedListener(() => console.log(`iframeProxy ${iframeProxy.id} was removed from the DOM`));
+  container.appendChild(iframeProxy);
 }
 
 document.getElementById('remove-all-custom-elements').onclick = () => {
@@ -54,7 +74,13 @@ document.getElementById('remove-all-custom-elements').onclick = () => {
 }
 
 document.getElementById('attempt-to-access-iframe').onclick = () => {
-  console.log('TODO: attempt to access the iframe inside the custom element');
+  // It is impossible to access the iframe element directly from the outside:
+  const iframeProxy1 = document.getElementById('custom-element-container').firstChild;
+  console.log(`iframeProxy.shadowRoot is ${iframeProxy1.shadowRoot}`); // <-- this is null
+  console.log(`iframeProxy.firstChild is ${iframeProxy1.firstChild}`); // <-- this is null
+  console.log(`iframeProxy.children.length is ${iframeProxy1.children.length}`); // <-- this is 0
+  // this will throw a SyntaxError immediately on load (even before this function is run).
+  // iframeProxy1.#shadowRoot
 }
 
 /////////////
